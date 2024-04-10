@@ -25,6 +25,11 @@ class Polygon {
     return this._vertices = Vertex.map(vertices).filter((currVertex, i) => {
       const prevIndex = utils.fixedMod(i - 1, vertices.length);
       const prevVertex = vertices[prevIndex];
+      
+      // TODO: check why those vertex may be undefined.
+      if (prevVertex === undefined || currVertex === undefined) {
+        return true;
+      }
 
       return !utils.isSimilar(currVertex.x, prevVertex.x) ||
              !utils.isSimilar(currVertex.y, prevVertex.y);

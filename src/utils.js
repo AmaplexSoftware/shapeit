@@ -4,7 +4,7 @@ export function fixedMod(a, b) {
   return ((a % b) + b) % b;
 }
 
-export function isBetween(value, limit1, limit2) {
+export function isBetween(value, limit1, limit2, tolerance) {
   let min, max;
 
   if (limit1 < limit2) {
@@ -16,11 +16,11 @@ export function isBetween(value, limit1, limit2) {
     max = limit1;
   }
 
-  return value >= min && value <= max;
+  return value >= min - tolerance && value <= max + tolerance;
 }
 
 export function isBetweenThreshold(dst, src, threshold) {
-  return isBetween(dst, src - threshold, src + threshold);
+  return isBetween(dst, src - threshold, src + threshold, 0);
 }
 
 export function getStandardDeviation(values) {

@@ -39,6 +39,10 @@ function createShapeit(config = {}) {
 
   // A wrap around the result of the detectShape() function
   function shapeit(vertices) {
+
+    // Convert the array of vertices to "Vertex" object.
+    vertices = vertices.map(vertex => new Vertex(vertex[0], vertex[1]));
+
     const result = detectShape(vertices);
     let shape;
 
@@ -81,23 +85,25 @@ function createShapeit(config = {}) {
     const subPolygons = [];
 
     for (let i = 2; i < vertices.length - 1; i++) {
-      const vertex = vertices[i];
-      const nextVertex = vertices[i + 1];
+      const vertex = vertices[i]
+      const nextVertex = vertices[i+1]
       let vector = new Vector(vertex, nextVertex);
 
       // We will normalize the last vertex in hope to find intersection
       if (i == vertices.length - 2) {
-        vector = vector.normalizeLength(thresholds.normalDistance, vertex);
+        const minLength = vector.getLength() + thresholds.normalDistance;
+        vector = vector.normalizeLength(minLength , vertex);
       }
 
       for (let j = 0; j < i - 1; j++) {
-        const candiVertex = vertices[j];
-        const nextCandiVertex = vertices[j + 1];
+        const candiVertex = vertices[j]
+        const nextCandiVertex = vertices[j+1]
         let candiVector = new Vector(candiVertex, nextCandiVertex);
 
         // We will normalize the first vertex in hope to find intersection
         if (j == 0) {
-          candiVector = candiVector.normalizeLength(thresholds.normalDistance, nextCandiVertex);
+          const minLength = candiVector.getLength() + thresholds.normalDistance;
+          candiVector = candiVector.normalizeLength(minLength , nextCandiVertex);
         }
 
         const angle = vector.getAngle(candiVector);

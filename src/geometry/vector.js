@@ -91,8 +91,9 @@ class Vector {
 
   // Returns if given vertex is contained by the bounds aka cage of line
   boundsHaveVertex({ x, y }) {
-    return utils.isBetween(x, this.x1, this.x2) &&
-      utils.isBetween(y, this.y1, this.y2);
+    const tolerance = 0.5;
+    return utils.isBetween(x, this.x1, this.x2, tolerance) &&
+      utils.isBetween(y, this.y1, this.y2, tolerance);
   }
 
   getIntersection(shape) {
@@ -120,9 +121,10 @@ class Vector {
       ((this.y1 - this.y2) * ((vector.x1 * vector.y2) - (vector.y1 * vector.x2)))) /
       (((this.x1 - this.x2) * (vector.y1 - vector.y2)) - ((this.y1 - this.y2) * (
       vector.x1 - vector.x2)));
-
-    if (utils.isBetween(x, this.x1, this.x2) && utils.isBetween(x, vector.x1, vector.x2) &&
-        utils.isBetween(y, this.y1, this.y2) && utils.isBetween(y, vector.y1, vector.y2)) {
+    
+    const tolerance = 0.5;
+    if (utils.isBetween(x, this.x1, this.x2, tolerance) && utils.isBetween(x, vector.x1, vector.x2, tolerance) &&
+        utils.isBetween(y, this.y1, this.y2, tolerance) && utils.isBetween(y, vector.y1, vector.y2, tolerance)) {
       return new Vertex({ x, y });
     }
 
@@ -163,8 +165,8 @@ class Vector {
     const angle = this.getAngle();
 
     const vertex = {
-      x: pivot.x + xFactor * length * Math.abs(Math.cos(angle)),
-      y: pivot.y + yFactor * length * Math.abs(Math.sin(angle))
+      x: counterPivot.x + xFactor * length * Math.abs(Math.cos(angle)),
+      y: counterPivot.y + yFactor * length * Math.abs(Math.sin(angle))
     };
 
     // Note that the order of the vertices might be critical, depends on the calculation
