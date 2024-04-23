@@ -321,7 +321,9 @@ function createShapeit(config = {}) {
       { x: 0, y: 0 },
       { x: horizontalLength, y: 0 },
       { x: horizontalLength, y: verticalLength }
-    ]).fitWith(shape.geometry);
+    ], {
+      rotationProduct: output.rectRotationProduct
+    }).fitWith(shape.geometry);
   }
 
   // Gets a score threshold based on the number of edges. The higher the number of
