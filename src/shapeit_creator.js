@@ -60,17 +60,18 @@ function createShapeit(config = {}) {
       case 'vector': {
         const { vertex1, vertex2 } = result.geometry;
 
-        shape = [
+        shape = {
+          vertices: [
           [vertex1.x, vertex1.y],
           [vertex2.x, vertex2.y],
-        ];
+        ]};
 
         break;
       }
       default: {
-        shape = result.geometry.vertices.map((vertex) => [
-          vertex.x, vertex.y
-        ]);
+        shape = {
+          vertices: result.geometry.vertices.map((vertex) => [vertex.x, vertex.y])
+        };
       }
     }
 
