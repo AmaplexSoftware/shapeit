@@ -1,8 +1,8 @@
-import * as _ from 'lodash';
-import * as utils from '../utils';
-import Circle from './circle';
-import Vector from './vector';
-import Vertex from './vertex';
+import * as _ from "lodash";
+import * as utils from "../utils";
+import Circle from "./circle";
+import Vector from "./vector";
+import Vertex from "./vertex";
 
 // Should be imported below class definition
 let Rectangle;
@@ -13,7 +13,7 @@ class Polygon {
   }
 
   set opened(value) {
-    return this.closed = !value;
+    return (this.closed = !value);
   }
 
   get vertices() {
@@ -22,30 +22,34 @@ class Polygon {
 
   set vertices(vertices) {
     // Getting rid of multiple vertices in a row. Drawn shapes can always be messy ;-)
-    return this._vertices = Vertex.map(vertices).filter((currVertex, i) => {
+    return (this._vertices = Vertex.map(vertices).filter((currVertex, i) => {
       const prevIndex = utils.fixedMod(i - 1, vertices.length);
       const prevVertex = vertices[prevIndex];
-      
+
       // TODO: check why those vertex may be undefined.
       if (prevVertex === undefined || currVertex === undefined) {
         return true;
       }
 
-      return !utils.isSimilar(currVertex.x, prevVertex.x) ||
-             !utils.isSimilar(currVertex.y, prevVertex.y);
-    });
+      return (
+        !utils.isSimilar(currVertex.x, prevVertex.x) || !utils.isSimilar(currVertex.y, prevVertex.y)
+      );
+    }));
   }
 
   get options() {
     return {
-      closed: this.closed
+      closed: this.closed,
     };
   }
 
   constructor(vertices, options = {}) {
-    options = Object.assign({
-      closed: true
-    }, options);
+    options = Object.assign(
+      {
+        closed: true,
+      },
+      options
+    );
 
     this.vertices = vertices;
     this.closed = options.closed;
@@ -69,11 +73,11 @@ class Polygon {
   }
 
   getLengths(vectors = this.getVectors()) {
-    return vectors.map(vector => vector.getLength());
+    return vectors.map((vector) => vector.getLength());
   }
 
   getAngles(vectors = this.getVectors()) {
-    return vectors.map(vector => vector.getAngle());
+    return vectors.map((vector) => vector.getAngle());
   }
 
   getCosines(vectors = this.getVectors()) {
@@ -125,37 +129,40 @@ class Polygon {
 
     // If this is a straight line
     if (!areaSum) {
-      return vertices.reduce((sumVertex, currVertex) => ({
-        x: sumVertex.x + (currVertex.x / this.vertices.length),
-        y: sumVertex.y + (currVertex.y / this.vertices.length)
-      }), {
-        x: 0,
-        y: 0
-      });
+      return vertices.reduce(
+        (sumVertex, currVertex) => ({
+          x: sumVertex.x + currVertex.x / this.vertices.length,
+          y: sumVertex.y + currVertex.y / this.vertices.length,
+        }),
+        {
+          x: 0,
+          y: 0,
+        }
+      );
     }
 
     const factor = areaSum * 3;
 
     return new Vertex({
       x: x / factor,
-      y: y / factor
+      y: y / factor,
     });
   }
 
   getMinX() {
-    return _.minBy(this.vertices, vertex => vertex.x).x;
+    return _.minBy(this.vertices, (vertex) => vertex.x).x;
   }
 
   getMaxX() {
-    return _.maxBy(this.vertices, vertex => vertex.x).x;
+    return _.maxBy(this.vertices, (vertex) => vertex.x).x;
   }
 
   getMinY() {
-    return _.minBy(this.vertices, vertex => vertex.y).y;
+    return _.minBy(this.vertices, (vertex) => vertex.y).y;
   }
 
   getMaxY() {
-    return _.maxBy(this.vertices, vertex => vertex.y).y;
+    return _.maxBy(this.vertices, (vertex) => vertex.y).y;
   }
 
   boundsHaveVertex({ x, y }) {
@@ -178,7 +185,7 @@ class Polygon {
       { x: minX, y: minY },
       { x: maxX, y: minY },
       { x: maxX, y: maxY },
-      { x: minX, y: maxY }
+      { x: minX, y: maxY },
     ]);
   }
 
@@ -187,7 +194,7 @@ class Polygon {
     const center = this.getCenter();
 
     const radius = _.chain(this.vertices)
-      .map(vertex => new Vector(vertex, center).getLength())
+      .map((vertex) => new Vector(vertex, center).getLength())
       .max()
       .value();
 
@@ -205,8 +212,8 @@ class Polygon {
       const subX = vertices[i == vertices.length - 1 ? 0 : i + 1].x;
       const subY = vertices[i].y;
 
-      total += (addX * addY * 0.5);
-      total -= (subX * subY * 0.5);
+      total += addX * addY * 0.5;
+      total -= subX * subY * 0.5;
     }
 
     return Math.abs(total);
@@ -216,15 +223,15 @@ class Polygon {
     const vertices = this.vertices
       .map((vertex) => ({
         x: vertex.x - pivot.x,
-        y: vertex.y - pivot.y
+        y: vertex.y - pivot.y,
       }))
       .map((vertex) => ({
         x: vertex.x * scale,
-        y: vertex.y * scale
+        y: vertex.y * scale,
       }))
       .map((vertex) => ({
         x: vertex.x + pivot.x,
-        y: vertex.y + pivot.y
+        y: vertex.y + pivot.y,
       }));
 
     return new this.constructor(vertices, this.options);
@@ -238,15 +245,15 @@ class Polygon {
     const vertices = this.vertices
       .map((vertex) => ({
         x: vertex.x - pivot.x,
-        y: vertex.y - pivot.y
+        y: vertex.y - pivot.y,
       }))
       .map((vertex) => ({
         x: radiansX * vertex.x - radiansY * vertex.y,
-        y: radiansY * vertex.x + radiansX * vertex.y
+        y: radiansY * vertex.x + radiansX * vertex.y,
       }))
       .map((vertex) => ({
         x: vertex.x + pivot.x,
-        y: vertex.y + pivot.y
+        y: vertex.y + pivot.y,
       }));
 
     return new this.constructor(vertices, this.options);
@@ -257,12 +264,12 @@ class Polygon {
 
     const centerDiff = {
       x: pivot.x - center.x,
-      y: pivot.y - center.y
+      y: pivot.y - center.y,
     };
 
     const vertices = this.vertices.map((vertex) => ({
       x: vertex.x + centerDiff.x,
-      y: vertex.y + centerDiff.y
+      y: vertex.y + centerDiff.y,
     }));
 
     return new this.constructor(vertices, this.options);
@@ -339,7 +346,7 @@ class Polygon {
       new this.constructor(this.vertices.slice().reverse(), options)
         .moveTo(center)
         .scale(scale)
-        .rotate(Math.PI + radian + Math.PI / 2)
+        .rotate(Math.PI + radian + Math.PI / 2),
     ];
 
     if (useMirroring) {
@@ -356,13 +363,17 @@ class Polygon {
 
     // Return the polygon which has the least vertex position diff
     return _.minBy(candiPolygons, (candiPolygon) => {
-      return _.sum(candiPolygon.vertices.map((candiVertex) => {
-        return _.min(polygon.vertices.map((polygonVertex) => {
-          const xdiff = Math.abs(candiVertex.x - polygonVertex.x);
-          const ydiff = Math.abs(candiVertex.y - polygonVertex.y);
-          return xdiff + ydiff;
-        }));
-      }));
+      return _.sum(
+        candiPolygon.vertices.map((candiVertex) => {
+          return _.min(
+            polygon.vertices.map((polygonVertex) => {
+              const xdiff = Math.abs(candiVertex.x - polygonVertex.x);
+              const ydiff = Math.abs(candiVertex.y - polygonVertex.y);
+              return xdiff + ydiff;
+            })
+          );
+        })
+      );
     });
   }
 
@@ -372,7 +383,7 @@ class Polygon {
 
     const vertices = polygon.vertices.map(({ x, y }) => ({
       x,
-      y: -y
+      y: -y,
     }));
 
     return new this.constructor(vertices, this.options).rotate(-axisAngle);
@@ -384,27 +395,26 @@ class Polygon {
   reduceLOD(threshold) {
     const cosines = this.getCosines();
 
-    const vertices = cosines.map((cosine) => {
-      // The cosines that we would **not** like to keep
-      return isNaN(cosine) || utils.isBetweenThreshold(cosine, Math.PI, threshold);
-    })
-    // Filter subsequent cosines and treat them as a single angle
-    .map((testResult, index) => {
-      return !testResult && this.vertices[index];
-    })
-    .filter(Boolean);
+    const vertices = cosines
+      .map((cosine) => {
+        // The cosines that we would **not** like to keep
+        return isNaN(cosine) || utils.isBetweenThreshold(cosine, Math.PI, threshold);
+      })
+      // Filter subsequent cosines and treat them as a single angle
+      .map((testResult, index) => {
+        return !testResult && this.vertices[index];
+      })
+      .filter(Boolean);
 
     // If this was a perfectly straight line all vertices are gonna be reduced, in which
     // case we gonna return the current polygon manually
     if (vertices.length < 3) {
-      return new Polygon(
-        [this.vertices[0], this.vertices[this.vertices.length - 1]], this.options
-      );
+      return new Polygon([this.vertices[0], this.vertices[this.vertices.length - 1]], this.options);
     }
 
     // The threshold is a function of the size of the polygon
     const boundingBox = this.getBoundingBox();
-    let distanceThreshold = Math.min(boundingBox.getWidth(), boundingBox.getHeight()) / 5;
+    let distanceThreshold = Math.min(boundingBox.getWidth(), boundingBox.getHeight()) / 2;
     distanceThreshold = _.clamp(distanceThreshold, 10, 50);
 
     // Get rid of vertices which are close to each other and treat them as one
@@ -427,4 +437,4 @@ class Polygon {
 
 export default Polygon;
 
-Rectangle = require('./rectangle').default;
+Rectangle = require("./rectangle").default;

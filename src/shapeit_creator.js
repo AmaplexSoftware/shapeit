@@ -1,53 +1,49 @@
-import * as _ from 'lodash';
-import * as utils from './utils';
+import * as _ from "lodash";
+import * as utils from "./utils";
 
-import {
-  output as defaultOutput,
-  thresholds as defaultThresholds,
-} from './defaults';
+import { output as defaultOutput, thresholds as defaultThresholds } from "./defaults";
 
-import {
-  Circle,
-  Polygon,
-  Rectangle,
-  Vector,
-  Vertex
-} from './geometry';
+import { Circle, Polygon, Rectangle, Vector, Vertex } from "./geometry";
 
 function createShapeit(config = {}) {
-  const { thresholds, output } = config = _.merge({
-    atlas: {},
-    output: defaultOutput,
-    thresholds: defaultThresholds,
-  }, config);
+  const { thresholds, output } = (config = _.merge(
+    {
+      atlas: {},
+      output: defaultOutput,
+      thresholds: defaultThresholds,
+    },
+    config
+  ));
 
   // Wrapping all provided polygon data with polygon classes
   const atlas = transformAtlas(config.atlas);
 
   // Square is a very basic and important shape which will always be added by default
   atlas.push({
-    name: 'square',
-    geometry: new Rectangle([
-      { x: 0, y: 0 },
-      { x: 1, y: 0 },
-      { x: 1, y: 1 },
-      { x: 0, y: 1 },
-    ], {
-      rotationProduct: output.rectRotationProduct
-    }),
+    name: "square",
+    geometry: new Rectangle(
+      [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 1, y: 1 },
+        { x: 0, y: 1 },
+      ],
+      {
+        rotationProduct: output.rectRotationProduct,
+      }
+    ),
   });
 
   // A wrap around the result of the detectShape() function
   function shapeit(vertices) {
-
     // Convert the array of vertices to "Vertex" object.
-    vertices = vertices.map(vertex => new Vertex(vertex[0], vertex[1]));
+    vertices = vertices.map((vertex) => new Vertex(vertex[0], vertex[1]));
 
     const result = detectShape(vertices);
     let shape;
 
     switch (result.name) {
-      case 'circle': {
+      case "circle": {
         const center = result.geometry.getCenter();
 
         shape = {
@@ -57,20 +53,21 @@ function createShapeit(config = {}) {
 
         break;
       }
-      case 'vector': {
+      case "vector": {
         const { vertex1, vertex2 } = result.geometry;
 
         shape = {
           vertices: [
-          [vertex1.x, vertex1.y],
-          [vertex2.x, vertex2.y],
-        ]};
+            [vertex1.x, vertex1.y],
+            [vertex2.x, vertex2.y],
+          ],
+        };
 
         break;
       }
       default: {
         shape = {
-          vertices: result.geometry.vertices.map((vertex) => [vertex.x, vertex.y])
+          vertices: result.geometry.vertices.map((vertex) => [vertex.x, vertex.y]),
         };
       }
     }
@@ -86,32 +83,34 @@ function createShapeit(config = {}) {
     const subPolygons = [];
 
     for (let i = 2; i < vertices.length - 1; i++) {
-      const vertex = vertices[i]
-      const nextVertex = vertices[i+1]
+      const vertex = vertices[i];
+      const nextVertex = vertices[i + 1];
       let vector = new Vector(vertex, nextVertex);
 
       // We will normalize the last vertex in hope to find intersection
       if (i == vertices.length - 2) {
         const minLength = vector.getLength() + thresholds.normalDistance;
-        vector = vector.normalizeLength(minLength , vertex);
+        vector = vector.normalizeLength(minLength, vertex);
       }
 
       for (let j = 0; j < i - 1; j++) {
-        const candiVertex = vertices[j]
-        const nextCandiVertex = vertices[j+1]
+        const candiVertex = vertices[j];
+        const nextCandiVertex = vertices[j + 1];
         let candiVector = new Vector(candiVertex, nextCandiVertex);
 
         // We will normalize the first vertex in hope to find intersection
         if (j == 0) {
           const minLength = candiVector.getLength() + thresholds.normalDistance;
-          candiVector = candiVector.normalizeLength(minLength , nextCandiVertex);
+          candiVector = candiVector.normalizeLength(minLength, nextCandiVertex);
         }
 
         const angle = vector.getAngle(candiVector);
 
         // Intersection will count but only from a certain intersection angle
-        if (utils.isBetweenThreshold(angle, 0, thresholds.vectorsReductionAngle) ||
-            utils.isBetweenThreshold(angle, Math.PI, thresholds.vectorsReductionAngle)) {
+        if (
+          utils.isBetweenThreshold(angle, 0, thresholds.vectorsReductionAngle) ||
+          utils.isBetweenThreshold(angle, Math.PI, thresholds.vectorsReductionAngle)
+        ) {
           continue;
         }
 
@@ -148,7 +147,7 @@ function createShapeit(config = {}) {
     }
     // Else, assume that the polygon with the biggest area is what we're interested in
     else {
-      polygon = _.maxBy(subPolygons, polygon => polygon.getArea());
+      polygon = _.maxBy(subPolygons, (polygon) => polygon.getArea());
     }
 
     const circle = tryCircle(polygon);
@@ -173,31 +172,30 @@ function createShapeit(config = {}) {
 
       // If polygon is completely reduced, this is a single vector
       if (resultVectors.length == 0) {
-        resultVectors.push(new Vector(
-          polygon.vertices[0],
-          polygon.vertices[polygon.vertices.length - 1]
-        ));
+        resultVectors.push(
+          new Vector(polygon.vertices[0], polygon.vertices[polygon.vertices.length - 1])
+        );
       }
 
-      const resultVertices =_.chain(resultVectors)
-        .map(vector => vector.getVertices())
+      const resultVertices = _.chain(resultVectors)
+        .map((vector) => vector.getVertices())
         .flatten()
         .value();
 
       // This is a vector, we wanna round the angle up before we return it
       if (resultVertices.length == 2) {
         return {
-          name: 'vector',
+          name: "vector",
           geometry: new Vector(...resultVertices, {
-            rotationProduct: output.vectorRotationProduct
-          }).roundAngle()
+            rotationProduct: output.vectorRotationProduct,
+          }).roundAngle(),
         };
       }
       // Otherwise this us probably a vectors set
       else {
         return {
-          name: 'open polygon',
-          geometry: new Polygon(resultVertices, { closed: false })
+          name: "open polygon",
+          geometry: new Polygon(resultVertices, { closed: false }),
         };
       }
     }
@@ -219,10 +217,13 @@ function createShapeit(config = {}) {
       const score = new Number(cosinesScore * ratiosScore);
 
       // Determine score properties
-      Object.assign(score, _.max([
-        utils.matchScore(shapeCosines, cosines, ratiosScore.offset + 1, ratiosScore.offset),
-        utils.matchScore(shapeRatios, ratios, cosinesScore.offset + 1, cosinesScore.offset)
-      ]));
+      Object.assign(
+        score,
+        _.max([
+          utils.matchScore(shapeCosines, cosines, ratiosScore.offset + 1, ratiosScore.offset),
+          utils.matchScore(shapeRatios, ratios, cosinesScore.offset + 1, cosinesScore.offset),
+        ])
+      );
 
       return score;
     });
@@ -240,8 +241,10 @@ function createShapeit(config = {}) {
     }
 
     const shapePattern = _.clone(atlas[matchingPatternIndex]);
-    const scoreThreshold = shapePattern.name == 'square' ?
-      thresholds.minSquareScore : getScoreThreshold(reducedPolygon.vertices.length);
+    const scoreThreshold =
+      shapePattern.name == "square"
+        ? thresholds.minSquareScore
+        : getScoreThreshold(reducedPolygon.vertices.length);
 
     // If the maximum score passes the threshold test, return its shape pattern
     if (bestScore > scoreThreshold) {
@@ -250,16 +253,26 @@ function createShapeit(config = {}) {
     }
 
     const shape = {
-      name: 'polygon',
-      geometry: reducedPolygon
+      name: "polygon",
+      geometry: reducedPolygon,
     };
 
     switch (reducedPolygon.vertices.length) {
-      case 3: shape.name = 'triangle'; break;
-      case 4: handleQuadShape(shape); break;
-      case 5: shape.name = 'pentagon'; break;
-      case 6: shape.name = 'hexagon'; break;
-      case 8: shape.name = 'octagon'; break;
+      case 3:
+        shape.name = "triangle";
+        break;
+      case 4:
+        handleQuadShape(shape);
+        break;
+      case 5:
+        shape.name = "pentagon";
+        break;
+      case 6:
+        shape.name = "hexagon";
+        break;
+      case 8:
+        shape.name = "octagon";
+        break;
     }
 
     return shape;
@@ -296,41 +309,47 @@ function createShapeit(config = {}) {
     if (STDratio > thresholds.radiusesStdRatio) return;
 
     return {
-      name: 'circle',
-      geometry: new Circle(center, meanRadius)
+      name: "circle",
+      geometry: new Circle(center, meanRadius),
     };
   }
 
   function handleQuadShape(shape) {
-    shape.name = 'quadrilateral';
+    shape.name = "quadrilateral";
 
     const polygon = shape.geometry;
     const cosines = polygon.getCosines();
-    const score = utils.matchScore(cosines, _.times(4, () => Math.PI / 2));
+    const score = utils.matchScore(
+      cosines,
+      _.times(4, () => Math.PI / 2)
+    );
 
     if (score < thresholds.minSquareScore) return;
 
     // In case this is a potential rectangle, we will do a special handling for it
-    shape.name = 'rectangle';
+    shape.name = "rectangle";
 
     const lengths = polygon.getLengths();
     const verticalLength = _.mean([lengths[0], lengths[2]]);
     const horizontalLength = _.mean([lengths[1], lengths[3]]);
 
-    shape.geometry = new Rectangle([
-      { x: 0, y: verticalLength },
-      { x: 0, y: 0 },
-      { x: horizontalLength, y: 0 },
-      { x: horizontalLength, y: verticalLength }
-    ], {
-      rotationProduct: output.rectRotationProduct
-    }).fitWith(shape.geometry);
+    shape.geometry = new Rectangle(
+      [
+        { x: 0, y: verticalLength },
+        { x: 0, y: 0 },
+        { x: horizontalLength, y: 0 },
+        { x: horizontalLength, y: verticalLength },
+      ],
+      {
+        rotationProduct: output.rectRotationProduct,
+      }
+    ).fitWith(shape.geometry);
   }
 
   // Gets a score threshold based on the number of edges. The higher the number of
   // edges is gonna be, the lower the threshold will be as well
   function getScoreThreshold(edgesNumber) {
-    return Math.sin((Math.PI / 2) * (thresholds.minShapeScore ** (edgesNumber)));
+    return Math.sin((Math.PI / 2) * thresholds.minShapeScore ** edgesNumber);
   }
 
   Object.assign(shapeit, {
@@ -366,7 +385,7 @@ function createShapeit(config = {}) {
 
       // Rotation segment for stored square shape should be updated
       if (mod.output.rectRotationProduct != null) {
-        const square = atlas.find(({ name }) => name == 'square');
+        const square = atlas.find(({ name }) => name == "square");
         square.rotationProduct = mod.output.rectRotationProduct;
       }
 
@@ -379,25 +398,29 @@ function createShapeit(config = {}) {
 
 // Wrapping all provided polygon data with polygon classes
 function transformAtlas(atlas) {
-  return _.transform(atlas, (atlas, shape, name) => {
-    let vertices, closed;
+  return _.transform(
+    atlas,
+    (atlas, shape, name) => {
+      let vertices, closed;
 
-    // If only an array was provided, we assume that a closed polygon was specified
-    if (shape instanceof Array) {
-      vertices = shape;
-      closed = true;
-    }
-    // Else, it might be opened
-    else {
-      vertices = shape.vertices;
-      closed = shape.closed;
-    }
+      // If only an array was provided, we assume that a closed polygon was specified
+      if (shape instanceof Array) {
+        vertices = shape;
+        closed = true;
+      }
+      // Else, it might be opened
+      else {
+        vertices = shape.vertices;
+        closed = shape.closed;
+      }
 
-    atlas.push({
-      name,
-      geometry: new Polygon(vertices, { closed }),
-    });
-  }, []);
+      atlas.push({
+        name,
+        geometry: new Polygon(vertices, { closed }),
+      });
+    },
+    []
+  );
 }
 
 export default createShapeit;
