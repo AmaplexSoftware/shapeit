@@ -118,7 +118,7 @@ function createShapeit(config = {}) {
 
         if (intersectionVertex === Vertex.NaN) continue;
 
-        const subVertices = vertices.slice(j + 1, i).concat(intersectionVertex);
+        const subVertices = vertices.slice(j + 1, i + 1).concat(intersectionVertex);
         const subPolygon = new Polygon(subVertices);
 
         // Ignore polygons with small areas
